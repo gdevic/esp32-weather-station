@@ -88,7 +88,7 @@ static void vTask_read_sensors(void *p)
         {
             uint32_t count2 = anem.get_and_clear_count2();
             hz = float(count2) / PERIOD_PEAK_WIND_SEC;
-            mph = hz * WIND_FACTOR_MPH;
+            mph = hz * wdata.wind_calib;
 
             // Store the new 3-sec wind peak value into a circular buffer
             rt_peak[rt_peak_next] = mph;
@@ -116,7 +116,7 @@ static void vTask_read_sensors(void *p)
             uint32_t count = anem.get_and_clear_count();
             wdata.anem_count = count;
             hz = float(count) / PERIOD_5_SEC;
-            mph = hz * WIND_FACTOR_MPH;
+            mph = hz * wdata.wind_calib;
             wdata.wind_rt = mph;
 
             // Store the new 5-sec real-time wind into a circular buffer
@@ -235,6 +235,7 @@ void setup()
     pref.begin("wd", true);
     wdata.id = pref.getString("id", "");
     wdata.tag = pref.getString("tag", "");
+    wdata.wind_calib = pref.getFloat("wind_calib", WIND_FACTOR_MPH);
     wdata.rain_calib = pref.getFloat("rain_calib", RAIN_FACTOR_IN);
     wdata.rain_event = pref.getUInt("rain_event", 0);
     wdata.rain_event_max = pref.getUInt("rain_event_max", 48);

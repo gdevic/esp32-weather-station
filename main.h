@@ -47,6 +47,7 @@ struct WeatherData
     float pressure;     // Current pressure in "hPa"
     float humidity;     // Current relative humidity in "%"
 
+    float wind_calib;   // [NV] Wind calibration factor (ticks to mph)
     float wind_peak;    // Wind peak maximum value over a 2-min sliding window
     float wind_rt;      // Wind realtime (5-sec averages)
     float wind_avg;     // Wind speed average over a 5-sec sliding window

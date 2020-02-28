@@ -70,6 +70,7 @@ void webserver_set_response()
     webtext_root += "\npressure = " + String(wdata.pressure);
     webtext_root += "\nhumidity = " + String(wdata.humidity);
 
+    webtext_root += "\nwind_calib = " + String(wdata.wind_calib, 4); // More decimal places
     webtext_root += "\nwind_peak = " + String(wdata.wind_peak);
     webtext_root += "\nwind_rt = " + String(wdata.wind_rt);
     webtext_root += "\nwind_avg = " + String(wdata.wind_avg);
@@ -187,6 +188,7 @@ void handleSet(AsyncWebServerRequest *request)
         bool ok = false;
         ok |= get_parse_value(request, "id", wdata.id);
         ok |= get_parse_value(request, "tag", wdata.tag);
+        ok |= get_parse_value(request, "wind_calib", wdata.wind_calib);
         ok |= get_parse_value(request, "rain_calib", wdata.rain_calib);
         ok |= get_parse_value(request, "rain_event", wdata.rain_event);
         ok |= get_parse_value(request, "rain_event_max", wdata.rain_event_max);
