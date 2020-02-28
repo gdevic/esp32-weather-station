@@ -26,6 +26,7 @@ static String webtext_root; // Web response to / (root)
 static String webtext_json; // Web response to /json
 static uint32_t reconnects = 0; // Count how many times WiFi had to reconnect (for stats)
 static String wifi_mac; // WiFi MAC address of this station
+static SemaphoreHandle_t webtext_semaphore; // Semaphore guarding the access to webtext strings as we are building them
 
 AsyncWebServer server(80);
 
@@ -40,6 +41,14 @@ String get_uptime_str(uint32_t sec)
 
 void webserver_set_response()
 {
+    // Wait 20 ms before giving up. In practice, there are no other tasks that could block this sem. for longer than that
+    // This task will take the longest due to a number of string operations
+    if (xSemaphoreTake(webtext_semaphore, TickType_t(20)) != pdTRUE)
+    {
+        wdata.error |= ERROR_SEM_1; // Log this error since we do want to know if 20 ms is ever hit
+        return;
+    }
+
     // Make this web page auto-refresh every 5 sec
     webtext_root = String("<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body><pre>");
 
@@ -102,16 +111,34 @@ void webserver_set_response()
         webtext_json += ", \"rain_total\":" + String(wdata.rain_total);
     }
     webtext_json += " }";
+
+    xSemaphoreGive(webtext_semaphore);
 }
 
 void handleRoot(AsyncWebServerRequest *request)
 {
-    request->send(200, "text/html", webtext_root);
+    if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
+    {
+        request->send(200, "text/html", webtext_root);
+        xSemaphoreGive(webtext_semaphore);
+    }
+    else
+        request->send(503, "text/html", "Resource busy, please retry.");
 }
 
 void handleJson(AsyncWebServerRequest *request)
 {
-    request->send(200, "application/json", webtext_json);
+    if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
+    {
+        request->send(200, "application/json", webtext_json);
+        xSemaphoreGive(webtext_semaphore);
+    }
+    else
+    {
+        // For json, instead of the error message, return the station id only. We also log this error.
+        wdata.error |= ERROR_SEM_2;
+        request->send(503, "application/json", "{ \"id\":\"" + wdata.id + "\" }");
+    }
 }
 
 template<class T> T parse(String value, char **p_next);
@@ -151,18 +178,26 @@ static bool get_parse_value(AsyncWebServerRequest *request, String key_name, T& 
 // Set a variable from the client side. The key/value pairs are passed using an HTTP GET method.
 void handleSet(AsyncWebServerRequest *request)
 {
-    // At this moment, we can only set various rain data kept in the NV memory
-    // Updating one at a time will respond with "OK" + the new value
-    bool ok = false;
-    ok |= get_parse_value(request, "id", wdata.id);
-    ok |= get_parse_value(request, "tag", wdata.tag);
-    ok |= get_parse_value(request, "rain_calib", wdata.rain_calib);
-    ok |= get_parse_value(request, "rain_event", wdata.rain_event);
-    ok |= get_parse_value(request, "rain_event_max", wdata.rain_event_max);
-    ok |= get_parse_value(request, "rain_event_cnt", wdata.rain_event_cnt);
-    ok |= get_parse_value(request, "rain_total", wdata.rain_total);
-    if (!ok)
-        request->send(400, "text/html", "?");
+    if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
+    {
+        // At this moment, we can only set various rain data kept in the NV memory
+        // Updating one at a time will respond with "OK" + the new value
+        bool ok = false;
+        ok |= get_parse_value(request, "id", wdata.id);
+        ok |= get_parse_value(request, "tag", wdata.tag);
+        ok |= get_parse_value(request, "rain_calib", wdata.rain_calib);
+        ok |= get_parse_value(request, "rain_event", wdata.rain_event);
+        ok |= get_parse_value(request, "rain_event_max", wdata.rain_event_max);
+        ok |= get_parse_value(request, "rain_event_cnt", wdata.rain_event_cnt);
+        ok |= get_parse_value(request, "rain_total", wdata.rain_total);
+        ok |= get_parse_value(request, "error", wdata.error);
+        if (!ok)
+            request->send(400, "text/html", "?");
+
+        xSemaphoreGive(webtext_semaphore);
+    }
+    else
+        request->send(503, "text/html", "Resource busy, please retry.");
 }
 
 const char* uploadHtml = " \
@@ -274,6 +309,9 @@ void setup_wifi()
 
 void setup_webserver()
 {
+    webtext_semaphore = xSemaphoreCreateMutex();
+    xSemaphoreGive(webtext_semaphore);
+
     webserver_set_response();
     server.on("/", handleRoot);
     server.on("/json", handleJson);

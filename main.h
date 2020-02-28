@@ -66,9 +66,11 @@ struct WeatherData
     // Misc logging and debug fields
     uint32_t seconds;     // Uptime seconds counter (shown as "uptime" in web reports)
     uint32_t anem_count;  // Anemometer count over the last 5 sec
-    uint32_t error;       // A non-zero bit indicates a particular error
+    uint32_t error;       // Bitfield where a non-zero bit indicates a particular error
 #define ERROR_BME_INIT  0x00000001  // Error initializing BME sensor
 #define ERROR_BME_READ  0x00000002  // Error reading BME sensor value
+#define ERROR_SEM_1     0x00010000  // Semaphore timed out (location 1)
+#define ERROR_SEM_2     0x00020000  // Semaphore timed out (location 2)
 };
 
 extern WeatherData wdata;
