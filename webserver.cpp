@@ -86,13 +86,14 @@ void webserver_set_response()
 
     webtext_root += String("</pre></body></html>\n");
 
-    // Format the json node response
-    // If the uptime is 0, do not add any data keys since there was no time to collect the data (out of reset)
+    // Format the json response
     webtext_json = "{";
     webtext_json += " \"id\":\"" + wdata.id + "\"";
     webtext_json += ", \"tag\":\"" + wdata.tag + "\"";
     webtext_json += ", \"uptime\":" + String(wdata.seconds);
-    if (wdata.seconds)
+    // When out of reset, and until the very fist time we had a chance to read sensors and calculate some meaningful
+    // values, do not attempt to return any data nodes
+    if (wdata.seconds > PERIOD_5_SEC)
     {
         webtext_json += ", \"temp_c\":" + String(wdata.temp_c);
         webtext_json += ", \"temp_f\":" + String(wdata.temp_f);
