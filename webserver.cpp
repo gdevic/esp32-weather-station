@@ -25,6 +25,7 @@ static const char* password = MY_PASS;
 static String webtext_root; // Web response to / (root)
 static String webtext_json; // Web response to /json
 static uint32_t reconnects = 0; // Count how many times WiFi had to reconnect (for stats)
+static String wifi_mac; // WiFi MAC address of this station
 
 AsyncWebServer server(80);
 
@@ -45,6 +46,7 @@ void webserver_set_response()
     webtext_root += "\nVER = " + String(FIRMWARE_VERSION);
     webtext_root += "\nID = " + wdata.id;
     webtext_root += "\nTAG = " + wdata.tag;
+    webtext_root += "\nMAC = " + wifi_mac;
     webtext_root += "\nuptime = " + get_uptime_str(wdata.seconds);
     webtext_root += "\nreconnects = " + String(reconnects);
     webtext_root += "\nRSSI = " + String(WiFi.RSSI()); // Signal strength
@@ -250,6 +252,7 @@ void setup_wifi()
     IPAddress gateway(192,168,1,1);
     IPAddress subnet(255,255,255,0);
     WiFi.config(ip, gateway, subnet);
+    wifi_mac = WiFi.macAddress();
 
     // Wait for connection
     while (WiFi.status() != WL_CONNECTED)
