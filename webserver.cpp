@@ -71,6 +71,8 @@ void webserver_set_response()
     webtext_root += "\nrain_calib = " + String(wdata.rain_calib, 4); // More decimal places
     webtext_root += "\nrain_rate = " + String(wdata.rain_rate);
     webtext_root += "\nrain_event = " + String(wdata.rain_event);
+    webtext_root += "\nrain_event_max = " + String(wdata.rain_event_max);
+    webtext_root += "\nrain_event_cnt = " + String(wdata.rain_event_cnt);
     webtext_root += "\nrain_total = " + String(wdata.rain_total);
 
     webtext_root += String("</pre></body></html>\n");
@@ -156,6 +158,8 @@ void handleSet(AsyncWebServerRequest *request)
     ok |= get_parse_value(request, "tag", wdata.tag);
     ok |= get_parse_value(request, "rain_calib", wdata.rain_calib);
     ok |= get_parse_value(request, "rain_event", wdata.rain_event);
+    ok |= get_parse_value(request, "rain_event_max", wdata.rain_event_max);
+    ok |= get_parse_value(request, "rain_event_cnt", wdata.rain_event_cnt);
     ok |= get_parse_value(request, "rain_total", wdata.rain_total);
     if (!ok)
         request->send(400, "text/html", "?");

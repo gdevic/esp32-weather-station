@@ -14,6 +14,9 @@
 // To simply test the code, define TEST and use a hard-coded ip ending with "99"
 //#define TEST
 
+// Period, in seconds, of one hour; to count when to clear the rain_event
+#define PERIOD_1_HR  (60 * 60)
+
 // Period, in seconds, to read sensors; and to calculate wind stats
 #define PERIOD_5_SEC  5
 
@@ -35,27 +38,30 @@
 
 struct WeatherData
 {
+    // Variables marked with [NV] are held in the non-volatile memory using Preferences
     // The station does not do anything with the id and the tag; clients should use them to identify and name a station
-    String id;            // Station identification string, held in the non-volatile memory
-    String tag;           // Station description or a tag, held in the non-volatile memory
-    float temp_c;         // Current temperature in "C"
-    float temp_f;         // Current temperature in "F"
-    float pressure;       // Current pressure in "hPa"
-    float humidity;       // Current relative humidity in "%"
+    String id;          // [NV] Station identification string, held in the non-volatile memory
+    String tag;         // [NV] Station description or a tag, held in the non-volatile memory
+    float temp_c;       // Current temperature in "C"
+    float temp_f;       // Current temperature in "F"
+    float pressure;     // Current pressure in "hPa"
+    float humidity;     // Current relative humidity in "%"
 
-    float wind_peak;      // Wind peak maximum value over a 2-min sliding window
-    float wind_rt;        // Wind realtime (5-sec averages)
-    float wind_avg;       // Wind speed average over a 5-sec sliding window
-    int wind_dir_adc;     // Wind direction sensor ADC raw value
-    int wind_dir_rt;      // Wind instantaneous, real time direction measured once every 5 sec
-    int wind_dir_avg;     // Wind direction [0,360) averaged over a 2-min sliding window
+    float wind_peak;    // Wind peak maximum value over a 2-min sliding window
+    float wind_rt;      // Wind realtime (5-sec averages)
+    float wind_avg;     // Wind speed average over a 5-sec sliding window
+    int wind_dir_adc;   // Wind direction sensor ADC raw value
+    int wind_dir_rt;    // Wind instantaneous, real time direction measured once every 5 sec
+    int wind_dir_avg;   // Wind direction [0,360) averaged over a 2-min sliding window
 
-    // The station does not do anything with the rain_calib; clients should use it as a single calbration reference
-    // when converting from tip counters to inches of rain
-    float rain_calib;     // Rain calibration factor (ticks to in), held in the non-volatile memory
-    uint32_t rain_total;  // Rain total tip counter, held in the non-volatile memory
-    uint32_t rain_event;  // Rain event tip counter, held in the non-volatile memory
-    uint32_t rain_rate;   // Rain rate, sum of individual new rain (tips) over a 10-min sliding window
+    // The station does not do anything with "rain_calib"; clients should use it as a single calbration reference
+    // when converting from the tip counters to inches of rain
+    float rain_calib;        // [NV] Rain calibration factor (ticks to in)
+    uint32_t rain_total;     // [NV] Rain total tip counter
+    uint32_t rain_event;     // [NV] Rain event tip counter
+    uint32_t rain_event_max; // [NV] The number of hours after which the station will reset the rain_event
+    uint32_t rain_event_cnt; // [NV] The number of hours since the last rain, to reset the rain_event
+    uint32_t rain_rate;      // Rain rate, sum of individual new rain tips over a 10-min sliding window
 
     // Misc logging and debug fields
     uint32_t seconds;     // Uptime seconds counter (shown as "uptime" in web reports)

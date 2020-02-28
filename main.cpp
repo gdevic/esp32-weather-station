@@ -69,6 +69,20 @@ static void vTask_read_sensors(void *p)
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
         wdata.seconds++;
 
+        // Once an hour, adjust rain event counters and possibly reset rain_event value
+        if ((wdata.seconds % PERIOD_1_HR) == 0)
+        {
+            wdata.rain_event_cnt += 1; // Increment the counter by one hour and make sure it is safely stored in the NVM
+            pref_set("rain_event_cnt", wdata.rain_event_cnt);
+            // Reset the rain_event only when the time since the last rain equals the reset limit. The counter will keep
+            // incrementing showing the number of hours since the last rain even after it had zeroed out the rain_event
+            if (wdata.rain_event_cnt == wdata.rain_event_max)
+            {
+                wdata.rain_event = 0;
+                pref_set("rain_event", wdata.rain_event);
+            }
+        }
+
         // Once every 3 seconds, calculate individual peak wind
         if ((wdata.seconds % PERIOD_PEAK_WIND_SEC) == 0)
         {
@@ -167,8 +181,10 @@ static void vTask_read_sensors(void *p)
                 {
                     wdata.rain_event += rain_count;
                     wdata.rain_total += rain_count;
+                    wdata.rain_event_cnt = 0; // Restart 'the number of hours since the last rain' counter
                     pref_set("rain_event", wdata.rain_event);
                     pref_set("rain_total", wdata.rain_total);
+                    pref_set("rain_event_cnt", wdata.rain_event_cnt);
                 }
             }
 #ifdef TEST
@@ -221,6 +237,8 @@ void setup()
     wdata.tag = pref.getString("tag", "");
     wdata.rain_calib = pref.getFloat("rain_calib", RAIN_FACTOR_IN);
     wdata.rain_event = pref.getUInt("rain_event", 0);
+    wdata.rain_event_max = pref.getUInt("rain_event_max", 48);
+    wdata.rain_event_cnt = pref.getUInt("rain_event_cnt", 0);
     wdata.rain_total = pref.getUInt("rain_total", 0);
     pref.end();
 
