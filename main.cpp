@@ -81,7 +81,7 @@ static void vTask_read_sensors(void *p)
             rt_peak_next = (rt_peak_next + 1) % RT_PEAK_MAX;
         }
 
-        // Once every 5 seconds, read all sensors, recalculate data and update web strings
+        // Once every 5 seconds, read all sensors and recalculate relevant data
         if ((wdata.seconds % PERIOD_5_SEC) == 0)
         {
             // Fill up WeatherData fields with the sensors' (and computed) data
@@ -171,10 +171,6 @@ static void vTask_read_sensors(void *p)
                     pref_set("rain_total", wdata.rain_total);
                 }
             }
-
-            // At the end, preset various response strings that the server should give out
-            webserver_set_response();
-
 #ifdef TEST
             Serial.print(wdata.seconds);
             Serial.print(": ");
@@ -204,6 +200,9 @@ static void vTask_read_sensors(void *p)
             Serial.println("");
 #endif // TEST
         }
+        // At the end, preset various response strings that the server should give out. This will happen once a second,
+        // whether we have any new data or not.
+        webserver_set_response();
     }
 }
 
