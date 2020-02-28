@@ -109,6 +109,7 @@ void webserver_set_response()
         webtext_json += ", \"rain_calib\":" + String(wdata.rain_calib, 4); // More decimal places
         webtext_json += ", \"rain_rate\":" + String(wdata.rain_rate);
         webtext_json += ", \"rain_event\":" + String(wdata.rain_event);
+        webtext_json += ", \"rain_event_cnt\":" + String(wdata.rain_event_cnt);
         webtext_json += ", \"rain_total\":" + String(wdata.rain_total);
     }
     webtext_json += " }";
