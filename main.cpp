@@ -238,7 +238,7 @@ void setup()
     wdata.wind_calib = pref.getFloat("wind_calib", WIND_FACTOR_MPH);
     wdata.rain_calib = pref.getFloat("rain_calib", RAIN_FACTOR_IN);
     wdata.rain_event = pref.getUInt("rain_event", 0);
-    wdata.rain_event_max = pref.getUInt("rain_event_max", 48);
+    wdata.rain_event_max = pref.getUInt("rain_event_max", 24);
     wdata.rain_event_cnt = pref.getUInt("rain_event_cnt", 0);
     wdata.rain_total = pref.getUInt("rain_total", 0);
     pref.end();
