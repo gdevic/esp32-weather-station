@@ -84,6 +84,7 @@ void webserver_set_response()
     webtext_root += "\nrain_event_max = " + String(wdata.rain_event_max);
     webtext_root += "\nrain_event_cnt = " + String(wdata.rain_event_cnt);
     webtext_root += "\nrain_total = " + String(wdata.rain_total);
+    webtext_root += "\nrain_test = " + String(wdata.rain_test);
 
     webtext_root += String("</pre></body></html>\n");
 

@@ -63,6 +63,7 @@ struct WeatherData
     uint32_t rain_event_max; // [NV] The number of hours after which the station will reset the rain_event
     uint32_t rain_event_cnt; // [NV] The number of hours since the last rain, to reset the rain_event
     uint32_t rain_rate;      // Rain rate, sum of individual new rain tips over a 10-min sliding window
+    uint32_t rain_test;      // Rain test counter, unconditionally increments
 
     // Misc logging and debug fields
     uint32_t seconds;     // Uptime seconds counter (shown as "uptime" in web reports)

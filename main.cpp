@@ -161,6 +161,7 @@ static void vTask_read_sensors(void *p)
 
             // Read the current rain gauge tip counter for any tips accumulated in the last 5-sec interval
             uint32_t rain_count = rain.get_and_clear_count();
+            wdata.rain_test += rain_count; // Always increment the test counter
             // If the relative humidity was less than a cutoff value, it is a false rain positive and will be ignored
             // However, if the BME humidity sensor could not be read, ignore that check
             if ((wdata.error & ERROR_BME_READ) || (uint32_t(wdata.humidity) >= CAN_RAIN_HUMIDITY_MIN))
@@ -213,6 +214,8 @@ static void vTask_read_sensors(void *p)
             Serial.print(wdata.rain_event);
             Serial.print(" TOT: ");
             Serial.print(wdata.rain_total);
+            Serial.println(" RTEST: ");
+            Serial.print(wdata.rain_test);
             Serial.println("");
 #endif // TEST
         }
