@@ -174,7 +174,7 @@ static void vTask_read_sensors(void *p)
                 uint32_t rain_sum = uint32_t(rt_rain[0]);
                 for (int i = 1; i < RT_RAIN_MAX; i++)
                     rain_sum += uint32_t(rt_rain[i]);
-                wdata.rain_rate = rain_sum;
+                wdata.rain_rate = rain_sum * RAIN_RATE_MUL; // Publish it as "per hour" value
 
                 // Add the new rain volume to the current rain_event and the overall rain total and back the result up in the NVM
                 // Do it only if there is new rain to add so that we don't write to NVM unnecessarily

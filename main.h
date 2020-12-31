@@ -27,6 +27,7 @@
 
 // Rain rate calculation is based on a 10-min sliding window
 #define PERIOD_RAIN_RATE  (60 * 10)
+#define RAIN_RATE_MUL      6 // Multiplication factor to publish rain rate, to bring it to "per hour" value
 
 // This value deals with false rain positives when rain gauge tips due to various extraneous reasons
 // We are going to ignore any rain counts if the relative humidity is below this percentage since any real rain
@@ -63,7 +64,7 @@ struct WeatherData
     uint32_t rain_event;     // [NV] Rain event tip counter
     uint32_t rain_event_max; // [NV] The number of hours after which the station will reset the rain_event
     uint32_t rain_event_cnt; // [NV] The number of hours since the last rain, to reset the rain_event
-    uint32_t rain_rate;      // Rain rate, sum of individual new rain tips over a 10-min sliding window
+    uint32_t rain_rate;      // Rain rate, sum of individual new rain tips over a 10-min sliding window times "per hour"
     uint32_t rain_test;      // Rain test counter, unconditionally increments
 
     // Misc logging and debug fields
