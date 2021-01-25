@@ -33,7 +33,7 @@
 // We are going to ignore any rain counts if the relative humidity is below this percentage since any real rain
 // would evaporate before reaching the ground. The reason this is not 100 (%) is to deal with possible corner cases.
 // XXX Quick summer rains can happen even when the humidity is quite low, so this check becomes at best questionable.
-#define CAN_RAIN_HUMIDITY_MIN  50
+#define CAN_RAIN_HUMIDITY_MIN  10
 
 #define WIND_FACTOR_MPH 1.492 // Relay tick to mph
 #define RAIN_FACTOR_IN  0.021 // Relay tick to inches of rain (initial best guess calibration value, rain_calib)
