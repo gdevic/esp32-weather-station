@@ -1,12 +1,12 @@
 #include "main.h"
 #include <WiFi.h>
-#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWebSrv.h>
 #include <ESPmDNS.h>
 #include <Update.h>
 
-// Async web server needs these two additional libraries:
-// https://github.com/me-no-dev/ESPAsyncWebServer
-// https://github.com/me-no-dev/AsyncTCP
+// Async web server needs these additional libraries (install via Arduinio IDE Library Manager):
+// https://github.com/dvarrel/ESPAsyncWebSrv
+// https://github.com/dvarrel/AsyncTCP
 
 extern "C" uint8_t temprature_sens_read(); // Very imprecise internal ESP32 temperature value in F
 
@@ -58,6 +58,7 @@ void webserver_set_response()
     webtext_root += "\nMAC = " + wifi_mac;
     webtext_root += "\nuptime = " + get_uptime_str(wdata.seconds);
     webtext_root += "\nreconnects = " + String(reconnects);
+    webtext_root += "\nSSID = " MY_SSID;
     webtext_root += "\nRSSI = " + String(WiFi.RSSI()); // Signal strength
     webtext_root += "\nGPIO36 = " + String(digitalRead(36));
     webtext_root += "\nGPIO39 = " + String(digitalRead(39));
