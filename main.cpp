@@ -101,7 +101,12 @@ static void vTask_read_sensors(void *p)
             // Fill up WeatherData fields with the sensors' (and computed) data
 
             // Read temperature, humidity and pressure sensor
-            read_bme280();
+#if SENSOR_IS_BME
+            read_bme280(); // From the BME280
+#endif // SENSOR_IS_BME            
+#if SENSOR_IS_DHT
+            read_dht22(); // From the DHT22
+#endif // SENSOR_IS_DHT            
 
             // Find the max peak wind over the size of its circular buffer, a 2-minute sliding window
             float wind_peak = rt_peak[0];
@@ -246,7 +251,12 @@ void setup()
     wdata.rain_total = pref.getUInt("rain_total", 0);
     pref.end();
 
+#if SENSOR_IS_BME
     setup_bme280();
+#endif // SENSOR_IS_BME
+#if SENSOR_IS_DHT    
+    setup_dht22();
+#endif // SENSOR_IS_DHT    
     setup_wind_rain();
     setup_wifi();
     setup_webserver();
