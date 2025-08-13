@@ -168,7 +168,7 @@ void read_bme280()
     wdata.humidity = float(hum_cal) / 1024.0;
 }
 
-void setup_bme280()
+bool setup_bme280()
 {
     uint8_t osrs_t = 1;             // Temperature oversampling x 1
     uint8_t osrs_p = 1;             // Pressure oversampling x 1
@@ -183,9 +183,22 @@ void setup_bme280()
     uint8_t ctrl_hum_reg  = osrs_h;
 
     Wire.begin();
+    delay(1000); // Wait a second after the initialization
+
+    // Get Chip ID
+    Wire.beginTransmission(BME280_ADDRESS);
+    Wire.write(0xD0);
+    Wire.endTransmission();
+    Wire.requestFrom(BME280_ADDRESS, 1);
+    if (!Wire.available())
+        return false;
+    Serial.print("Using BME280 ID=0x");
+    Serial.println(Wire.read(), HEX);
 
     writeReg(0xF2,ctrl_hum_reg);
     writeReg(0xF4,ctrl_meas_reg);
     writeReg(0xF5,config_reg);
     readTrim();
+
+    return true;
 }

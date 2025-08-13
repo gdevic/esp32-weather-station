@@ -14,10 +14,6 @@
 // To simply test the code, define TEST and use a hard-coded ip ending with "99"
 //#define TEST
 
-// Select which temp/humidity sensor do we have on board
-#define SENSOR_IS_BME 0
-#define SENSOR_IS_DHT 1
-
 // Period, in seconds, of one hour; to count when to clear the rain_event
 #define PERIOD_1_HR  (60 * 60)
 
@@ -115,11 +111,11 @@ void setup_webserver();
 void wifi_check_loop();
 
 // From bme280.cpp
+bool setup_bme280();
 void read_bme280();
-void setup_bme280();
 
 // From dht22.cpp
-void setup_dht22();
+bool setup_dht22();
 void read_dht22();
 
 // From argent80422.cpp

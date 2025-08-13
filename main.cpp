@@ -3,6 +3,10 @@
 
 WeatherData wdata = {};
 
+// Auto-detected sensors
+static bool using_bme280 = false;
+static bool using_dht22 = false;
+
 // Sliding window buffer to calculate the average wind speed over a period of two minutes
 #define RT_AVG_MAX  (120 / PERIOD_5_SEC)
 static float rt_avg[RT_AVG_MAX] = {};
@@ -101,12 +105,8 @@ static void vTask_read_sensors(void *p)
             // Fill up WeatherData fields with the sensors' (and computed) data
 
             // Read temperature, humidity and pressure sensor
-#if SENSOR_IS_BME
-            read_bme280(); // From the BME280
-#endif // SENSOR_IS_BME
-#if SENSOR_IS_DHT
-            read_dht22(); // From the DHT22
-#endif // SENSOR_IS_DHT
+            if (using_bme280) read_bme280();
+            if (using_dht22)  read_dht22();
 
             // Find the max peak wind over the size of its circular buffer, a 2-minute sliding window
             float wind_peak = rt_peak[0];
@@ -253,12 +253,11 @@ void setup()
 
     pref.end();
 
-#if SENSOR_IS_BME
-    setup_bme280();
-#endif // SENSOR_IS_BME
-#if SENSOR_IS_DHT    
-    setup_dht22();
-#endif // SENSOR_IS_DHT    
+    // Exclusive: one or the other (since they maybe share a digital SDA pin)
+    using_bme280 = setup_bme280();
+    if (!using_bme280)
+        using_dht22  = setup_dht22();
+
     setup_wind_rain();
     setup_wifi();
     setup_webserver();

@@ -7,10 +7,15 @@
 
 DHT22 dht22(pinDATA);
 
-void setup_dht22()
-{
-    // Wait a second after the initialization
+bool setup_dht22()
+{   
+    delay(1000); // Wait a second after the initialization
+    float sample = dht22.getTemperature();
+    if (dht22.getLastError() != 0)
+        return false;
+    Serial.println("Using DHT22");
     delay(1000);
+    return true;    
 }
 
 void read_dht22()

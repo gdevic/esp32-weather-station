@@ -14,7 +14,5 @@ It needs these additional libraries which can be installed via Arduinio IDE Libr
 
 Set your WiFi credentials in "wifi_credentials.h"
 
-Set define to select between BME280 and DHT22 sensors: see main.h
-
 OTA update:
 Sketch->Export compiled binary->select "esp32-weather-station.ino.bin"
