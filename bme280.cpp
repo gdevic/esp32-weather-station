@@ -162,6 +162,7 @@ void read_bme280()
     hum_cal = calibration_H(hum_raw);
 
     wdata.temp_c = float(temp_cal) / 100.0;
+    wdata.temp_c += wdata.temp_c_calib; // Apply calibration value
     wdata.temp_f = wdata.temp_c * 9.0 / 5.0 + 32.0;
     wdata.pressure = float(press_cal) / 100.0;
     wdata.humidity = float(hum_cal) / 1024.0;

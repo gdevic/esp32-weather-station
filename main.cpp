@@ -103,10 +103,10 @@ static void vTask_read_sensors(void *p)
             // Read temperature, humidity and pressure sensor
 #if SENSOR_IS_BME
             read_bme280(); // From the BME280
-#endif // SENSOR_IS_BME            
+#endif // SENSOR_IS_BME
 #if SENSOR_IS_DHT
             read_dht22(); // From the DHT22
-#endif // SENSOR_IS_DHT            
+#endif // SENSOR_IS_DHT
 
             // Find the max peak wind over the size of its circular buffer, a 2-minute sliding window
             float wind_peak = rt_peak[0];
@@ -249,6 +249,8 @@ void setup()
     wdata.rain_event_max = pref.getUInt("rain_event_max", 24);
     wdata.rain_event_cnt = pref.getUInt("rain_event_cnt", 0);
     wdata.rain_total = pref.getUInt("rain_total", 0);
+    wdata.temp_c_calib = pref.getFloat("temp_c_calib", 0.0);
+
     pref.end();
 
 #if SENSOR_IS_BME

@@ -66,10 +66,11 @@ void webserver_set_response()
     webtext_root += "\nanem_count = " + String(wdata.anem_count);
     webtext_root += "\nerror = " + String(wdata.error, HEX);
 
+    webtext_root += "\ntemp_c_calib = " + String(wdata.temp_c_calib, 2);
     webtext_root += "\ntemp_c = " + String(wdata.temp_c);
     webtext_root += "\ntemp_f = " + String(wdata.temp_f);
     webtext_root += "\npressure = " + String(wdata.pressure);
-    webtext_root += "\nhumidity = " + String(wdata.humidity);
+    webtext_root += "\nhumidity = " + String(wdata.humidity);   
 
     webtext_root += "\nwind_calib = " + String(wdata.wind_calib, 4); // More decimal places
     webtext_root += "\nwind_peak = " + String(wdata.wind_peak);
@@ -98,6 +99,7 @@ void webserver_set_response()
     // values, do not attempt to return any data nodes
     if (wdata.seconds > PERIOD_5_SEC)
     {
+        webtext_json += ", \"temp_c_calib\":" + String(wdata.temp_c_calib, 2);
         webtext_json += ", \"temp_c\":" + String(wdata.temp_c);
         webtext_json += ", \"temp_f\":" + String(wdata.temp_f);
         webtext_json += ", \"pressure\":" + String(wdata.pressure);
@@ -185,8 +187,7 @@ void handleSet(AsyncWebServerRequest *request)
 {
     if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
     {
-        // At this moment, we can only set various rain data kept in the NV memory
-        // Updating one at a time will respond with "OK" + the new value
+        // Successfully updating a variable should respond with "OK" + the new value
         bool ok = false;
         ok |= get_parse_value(request, "id", wdata.id);
         ok |= get_parse_value(request, "tag", wdata.tag);
@@ -197,6 +198,7 @@ void handleSet(AsyncWebServerRequest *request)
         ok |= get_parse_value(request, "rain_event_cnt", wdata.rain_event_cnt);
         ok |= get_parse_value(request, "rain_total", wdata.rain_total);
         ok |= get_parse_value(request, "error", wdata.error);
+        ok |= get_parse_value(request, "temp_c_calib", wdata.temp_c_calib);
         if (!ok)
             request->send(400, "text/html", "?");
 

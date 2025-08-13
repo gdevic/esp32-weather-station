@@ -28,6 +28,7 @@ void read_dht22()
     }
 
     wdata.temp_c = temperature;
+    wdata.temp_c += wdata.temp_c_calib; // Apply calibration value
     wdata.temp_f = wdata.temp_c * 9.0 / 5.0 + 32.0;
     wdata.pressure = 0;
     wdata.humidity = humidity;
