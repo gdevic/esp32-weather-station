@@ -238,6 +238,7 @@ void setup()
     // Configure strap pins for input
     pinMode(36, INPUT);
     pinMode(39, INPUT);
+    pinMode(32, INPUT);
 
     // Read the initial rain values stored in the NVM
     pref.begin("wd", true);

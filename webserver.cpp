@@ -13,7 +13,7 @@ extern "C" uint8_t temprature_sens_read(); // Very imprecise internal ESP32 temp
 #ifdef TEST
 #define GET_IP4  (99)
 #else
-#define GET_IP4  (0x20 | (!!digitalRead(39) << 1) | !!digitalRead(36))
+#define GET_IP4  (0x20 | (!!digitalRead(32) << 2) | (!!digitalRead(39) << 1) | !!digitalRead(36))
 #endif // TEST
 
 #include "wifi_credentials.h"
@@ -60,8 +60,7 @@ void webserver_set_response()
     webtext_root += "\nreconnects = " + String(reconnects);
     webtext_root += "\nSSID = " MY_SSID;
     webtext_root += "\nRSSI = " + String(WiFi.RSSI()); // Signal strength
-    webtext_root += "\nGPIO36 = " + String(digitalRead(36));
-    webtext_root += "\nGPIO39 = " + String(digitalRead(39));
+    webtext_root += "\nGPIO_32/39/36 = " + String(digitalRead(32)) + String(digitalRead(39)) + String(digitalRead(36));
     webtext_root += "\nINT_C = " + String((temprature_sens_read() - 32) / 1.8);
     webtext_root += "\nanem_count = " + String(wdata.anem_count);
     webtext_root += "\nerror = " + String(wdata.error, HEX);

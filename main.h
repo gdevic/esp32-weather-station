@@ -5,12 +5,14 @@
 #define FIRMWARE_VERSION "1.19"
 
 // To update firmware OTA, point your web server to <IP>/upload device webpage
-// Static IP address depends on the GPIO36/GPIO39 strapped to GND or Vcc in this way:
-// GPIO39 GPIO36   IP
-//   0      0    192.168.1.32
-//   0      1    192.168.1.33
-//   1      0    192.168.1.34
-//   1      1    192.168.1.35
+// Static IP address depends on the GPIO32/39/36 strapped to GND or Vcc in this way:
+// GPIO32 GPIO39 GPIO36   IP
+//   0      0      0    192.168.1.32
+//   0      0      1    192.168.1.33
+//   0      1      0    192.168.1.34
+//   0      1      1    192.168.1.35
+//   1      0      0    192.168.1.36
+//   <and so on...>
 // To simply test the code, define TEST and use a hard-coded ip ending with "99"
 //#define TEST
 
