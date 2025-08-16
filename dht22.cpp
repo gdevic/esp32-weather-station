@@ -2,7 +2,7 @@
 
 #include <DHT22.h>
 
-// SDA, or almost any other I/O pin. SDA is pin 21 on ESP32-WROOM-32U board
+// SDA, or almost any other I/O pin. SDA is GPIO 21 on ESP32-WROOM-32U board
 #define pinDATA SDA
 
 DHT22 dht22(pinDATA);
