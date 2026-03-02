@@ -22,7 +22,7 @@ uint16_t dig_P1;
  int16_t dig_H5;
  int8_t  dig_H6;
 
-static void readTrim()
+static bool readTrim()
 {
     uint8_t data[32],i=0;
     Wire.beginTransmission(BME280_ADDRESS);
@@ -30,7 +30,10 @@ static void readTrim()
     Wire.endTransmission();
     Wire.requestFrom(BME280_ADDRESS,24);
     if (!Wire.available())
+    {
         wdata.error |= ERROR_BME_INIT;
+        return false;
+    }
     while(Wire.available()){
         data[i] = Wire.read();
         i++;
@@ -69,6 +72,7 @@ static void readTrim()
     dig_H4 = (data[28]<< 4) | (0x0F & data[29]);
     dig_H5 = (data[30]<< 4) | ((data[29] >> 4) & 0x0F);
     dig_H6 =  data[31];
+    return true;
 }
 
 static void writeReg(uint8_t reg_address, uint8_t data)
@@ -139,13 +143,16 @@ void read_bme280()
 {
     unsigned long int hum_raw, temp_raw, pres_raw;
     int i = 0;
-    static uint32_t data[8];
+    uint32_t data[8];
     Wire.beginTransmission(BME280_ADDRESS);
     Wire.write(0xF7);
     Wire.endTransmission();
     Wire.requestFrom(BME280_ADDRESS,8);
     if (!Wire.available())
+    {
         wdata.error |= ERROR_BME_READ;
+        return;
+    }
     while(Wire.available()){
         data[i] = Wire.read();
         i++;
@@ -198,7 +205,9 @@ bool setup_bme280()
     writeReg(0xF2,ctrl_hum_reg);
     writeReg(0xF4,ctrl_meas_reg);
     writeReg(0xF5,config_reg);
-    readTrim();
+
+    if (!readTrim())
+        return false;
 
     return true;
 }

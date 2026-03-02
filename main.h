@@ -88,13 +88,25 @@ public:
     Gauge();
     void IRAM_ATTR isr();
     uint32_t get_count() { return count; }
-    uint32_t get_and_clear_count() { uint32_t n = count; count = 0; return n; }
-    uint32_t get_and_clear_count2() { uint32_t n = count2; count2 = 0; return n; }
+    uint32_t get_and_clear_count()
+    {
+        portENTER_CRITICAL(&lock);
+        uint32_t n = count; count = 0;
+        portEXIT_CRITICAL(&lock);
+        return n;
+    }
+    uint32_t get_and_clear_count2()
+    {
+        portENTER_CRITICAL(&lock);
+        uint32_t n = count2; count2 = 0;
+        portEXIT_CRITICAL(&lock);
+        return n;
+    }
 
 private:
     uint32_t last_time; // Used to debounce the reed switch
-    uint32_t count; // Counts the number of ISR ticks
-    uint32_t count2; // Second counter used for wind peak
+    volatile uint32_t count; // Counts the number of ISR ticks
+    volatile uint32_t count2; // Second counter used for wind peak
     portMUX_TYPE lock;
 };
 

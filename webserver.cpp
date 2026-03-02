@@ -35,7 +35,7 @@ String get_uptime_str(uint32_t sec)
     uint32_t seconds = (sec % 60);
     uint32_t minutes = (sec % 3600) / 60;
     uint32_t hours = (sec % 86400) / 3600;
-    uint32_t days = (sec % (86400 * 30)) / 86400;
+    uint32_t days = sec / 86400;
     return String(days) + ":" + String(hours) + ":" + String(minutes) + ":" + String(seconds);
 }
 
