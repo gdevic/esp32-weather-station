@@ -1,7 +1,6 @@
 #include "main.h"
 #include <WiFi.h>
 #include <ESPAsyncWebSrv.h>
-#include <ESPmDNS.h>
 #include <Update.h>
 
 // Async web server needs these additional libraries (install via Arduinio IDE Library Manager):
@@ -27,6 +26,7 @@ static String webtext_json; // Web response to /json
 static uint32_t reconnects = 0; // Count how many times WiFi had to reconnect (for stats)
 static String wifi_mac; // WiFi MAC address of this station
 static SemaphoreHandle_t webtext_semaphore; // Semaphore guarding the access to webtext strings as we are building them
+static uint32_t last_request_sec = 0; // Uptime timestamp of the last successfully served request
 
 AsyncWebServer server(80);
 
@@ -125,6 +125,7 @@ void handleRoot(AsyncWebServerRequest *request)
 {
     if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
     {
+        last_request_sec = wdata.seconds;
         request->send(200, "text/html", webtext_root);
         xSemaphoreGive(webtext_semaphore);
     }
@@ -136,6 +137,7 @@ void handleJson(AsyncWebServerRequest *request)
 {
     if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
     {
+        last_request_sec = wdata.seconds;
         request->send(200, "application/json", webtext_json);
         xSemaphoreGive(webtext_semaphore);
     }
@@ -186,6 +188,7 @@ void handleSet(AsyncWebServerRequest *request)
 {
     if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
     {
+        last_request_sec = wdata.seconds;
         // Successfully updating a variable should respond with "OK" + the new value
         bool ok = false;
         ok |= get_parse_value(request, "id", wdata.id);
@@ -289,7 +292,20 @@ void setup_ota()
     });
 }
 
-void setup_wifi()
+// Maximum number of 500ms retries before giving up on a connection attempt (30 seconds)
+#define WIFI_CONNECT_RETRIES  60
+
+// If WiFi appears connected but no request has been served for this many seconds, force a
+// reconnect cycle as a watchdog against the ESP32 WiFi stack going unresponsive
+#define WIFI_WATCHDOG_SEC       (60 * 60)
+
+// Suppress the watchdog if a request was served within this many seconds
+#define WIFI_WATCHDOG_QUIET_SEC (60 * 15)
+
+static uint32_t wifi_watchdog_counter = 0;
+
+// Attempt to connect to WiFi. Returns true if connected, false if timed out.
+static bool wifi_connect()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
@@ -300,18 +316,32 @@ void setup_wifi()
     WiFi.config(ip, gateway, subnet);
     wifi_mac = WiFi.macAddress();
 
-    // Wait for connection
-    while (WiFi.status() != WL_CONNECTED)
+    // Wait for connection with a timeout
+    for (int attempt = 0; attempt < WIFI_CONNECT_RETRIES; attempt++)
     {
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            Serial.printf("\nConnected to %s\nIP address: ", ssid);
+            Serial.println(WiFi.localIP());
+            reconnects++;
+            wifi_watchdog_counter = 0;
+            return true;
+        }
         Serial.print(".");
         delay(500);
     }
-    Serial.printf("\nConnected to %s\nIP address: ", ssid);
-    Serial.println(WiFi.localIP());
-    reconnects++;
+    Serial.println("\nWiFi connection timed out");
+    return false;
+}
 
-    if (MDNS.begin("esp32"))
-        Serial.println("MDNS responder started");
+void setup_wifi()
+{
+    // Initial connection: keep trying until successful (blocking at boot is acceptable)
+    while (!wifi_connect())
+    {
+        Serial.println("Retrying WiFi...");
+        delay(5000);
+    }
 }
 
 void setup_webserver()
@@ -330,10 +360,19 @@ void setup_webserver()
 void wifi_check_loop()
 {
     delay(1000);
+    wifi_watchdog_counter++;
 
     if (WiFi.status() != WL_CONNECTED)
     {
-        Serial.println("Server disconnected! Reconnecting...");
-        setup_wifi();
+        Serial.println("WiFi disconnected! Reconnecting...");
+        wifi_connect();
+    }
+    else if ((wifi_watchdog_counter >= WIFI_WATCHDOG_SEC) &&
+             ((wdata.seconds - last_request_sec) >= WIFI_WATCHDOG_QUIET_SEC))
+    {
+        // Periodic forced reconnect as a watchdog against the ESP32 WiFi stack going unresponsive
+        // Skip if a request was successfully served recently — that proves WiFi is working
+        Serial.println("WiFi watchdog: forcing reconnect...");
+        wifi_connect();
     }
 }
