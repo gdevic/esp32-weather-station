@@ -2,7 +2,7 @@
 #include <Wire.h>
 
 // The version string shown in stats. Nothing depends on it and it is used only to confirm newly flashed firmware.
-#define FIRMWARE_VERSION "1.19"
+#define FIRMWARE_VERSION "1.20"
 
 // To update firmware OTA, point your web server to <IP>/upload device webpage
 // Static IP address depends on the GPIO32/39/36 strapped to GND or Vcc in this way:
