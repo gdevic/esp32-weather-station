@@ -309,11 +309,11 @@ static bool wifi_connect()
 {
     WiFi.disconnect(true);
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
     IPAddress ip(192,168,1,GET_IP4);
     IPAddress gateway(192,168,1,1);
     IPAddress subnet(255,255,255,0);
     WiFi.config(ip, gateway, subnet);
+    WiFi.begin(ssid, password);
     wifi_mac = WiFi.macAddress();
 
     // Wait for connection with a timeout
