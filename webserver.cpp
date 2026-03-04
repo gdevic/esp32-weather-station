@@ -27,6 +27,7 @@ static uint32_t reconnects = 0; // Count how many times WiFi had to reconnect (f
 static String wifi_mac; // WiFi MAC address of this station
 static SemaphoreHandle_t webtext_semaphore; // Semaphore guarding the access to webtext strings as we are building them
 static uint32_t last_request_sec = 0; // Uptime timestamp of the last successfully served request
+static volatile bool ota_restart_pending = false;
 
 AsyncWebServer server(80);
 
@@ -284,7 +285,7 @@ void setup_ota()
             if (Update.end(true)) // true to set the size to the current progress
             {
                 Serial.println("Flash OK, rebooting...\n");
-                ESP.restart();
+                ota_restart_pending = true;
             }
             else
                 Update.printError(Serial);
@@ -359,6 +360,11 @@ void setup_webserver()
 
 void wifi_check_loop()
 {
+    if (ota_restart_pending)
+    {
+        delay(500); // Allow the async server to send the "OK" response
+        ESP.restart();
+    }
     delay(1000);
     wifi_watchdog_counter++;
 
