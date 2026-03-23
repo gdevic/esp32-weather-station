@@ -159,6 +159,8 @@ template<> inline String parse<String>(String value, char **p_next)
 {
     value.trim();
     value.replace("\"", "'"); // Disallow the quotation character to ensure valid JSON output when printed
+    if (value.length() > 64)
+        value = value.substring(0, 64);
     return value;
 }
 
@@ -192,6 +194,9 @@ void handleSet(AsyncWebServerRequest *request)
     if (xSemaphoreTake(webtext_semaphore, TickType_t(100)) == pdTRUE)
     {
         last_request_sec = wdata.seconds;
+
+        // Save values that need post-parse validation so we can rollback if invalid
+
         // Successfully updating a variable should respond with "OK" + the new value
         bool ok = false;
         ok |= get_parse_value(request, "id", wdata.id);
@@ -204,6 +209,9 @@ void handleSet(AsyncWebServerRequest *request)
         ok |= get_parse_value(request, "rain_total", wdata.rain_total);
         ok |= get_parse_value(request, "error", wdata.error);
         ok |= get_parse_value(request, "temp_c_calib", wdata.temp_c_calib);
+
+        // Post-parse validation: restore previous value if the new one is out of valid range
+
         if (!ok)
             request->send(400, "text/html", "?");
 
