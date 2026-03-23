@@ -52,6 +52,7 @@ void webserver_set_response()
 
     // Make this web page auto-refresh every 5 sec
     webtext_root = String("<!DOCTYPE html><html><head><meta http-equiv=\"refresh\" content=\"5\"></head><body><pre>");
+    webtext_root.reserve(1024);
 
     webtext_root += "\nVER = " + String(FIRMWARE_VERSION);
     webtext_root += "\nID = " + wdata.id;
@@ -92,6 +93,7 @@ void webserver_set_response()
 
     // Format the json response
     webtext_json = "{";
+    webtext_json.reserve(512);
     webtext_json += " \"id\":\"" + wdata.id + "\"";
     webtext_json += ", \"tag\":\"" + wdata.tag + "\"";
     webtext_json += ", \"uptime\":" + String(wdata.seconds);
