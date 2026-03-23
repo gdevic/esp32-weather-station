@@ -268,7 +268,7 @@ void setup()
     xTaskCreatePinnedToCore(
         vTask_read_sensors, // Task function
         "task_sensors",     // String with name of the task
-        2048,               // Stack size in bytes
+        4096,               // Stack size in bytes
         &wdata,             // Parameter passed as input to the task is the global weather data struct (not used)
         1,                  // Priority of the task
         NULL,               // Task handle
