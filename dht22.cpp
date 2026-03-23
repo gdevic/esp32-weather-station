@@ -27,6 +27,7 @@ void read_dht22()
     // Check if any reads failed and exit early (to try again)
     if (dht22.getLastError() != dht22.OK)
     {
+        wdata.error |= ERROR_DHT_READ;
         Serial.println("Failed to read from DHT sensor!");
         Serial.println(dht22.getLastError());
         return;

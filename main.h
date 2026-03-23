@@ -76,6 +76,7 @@ struct WeatherData
     float temp_c_calib;   // Correction to the temperature reading (some sensors run hot)
 #define ERROR_BME_INIT  0x00000001  // Error initializing BME sensor
 #define ERROR_BME_READ  0x00000002  // Error reading BME sensor value
+#define ERROR_DHT_READ  0x00000004  // Error reading DHT sensor value
 #define ERROR_SEM_1     0x00010000  // Semaphore timed out (location 1)
 #define ERROR_SEM_2     0x00020000  // Semaphore timed out (location 2)
 };
