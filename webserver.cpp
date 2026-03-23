@@ -158,6 +158,9 @@ template<> inline float parse<float>(String value, char **p_next) { return strto
 template<> inline String parse<String>(String value, char **p_next)
 {
     value.trim();
+    value.replace("&", "&amp;");  // HTML entity escaping (must be first)
+    value.replace("<", "&lt;");
+    value.replace(">", "&gt;");
     value.replace("\"", "'"); // Disallow the quotation character to ensure valid JSON output when printed
     if (value.length() > 64)
         value = value.substring(0, 64);
