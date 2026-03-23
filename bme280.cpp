@@ -34,7 +34,7 @@ static bool readTrim()
         wdata.error |= ERROR_BME_INIT;
         return false;
     }
-    while(Wire.available()){
+    while(Wire.available() && (i < 24)){
         data[i] = Wire.read();
         i++;
     }
@@ -50,7 +50,7 @@ static bool readTrim()
     Wire.write(0xE1);
     Wire.endTransmission();
     Wire.requestFrom(BME280_ADDRESS,7);
-    while(Wire.available()){
+    while(Wire.available() && (i < (24 + 1 + 7))){ // Total: 24 (0x88) + 1 (0xA1) + 7 (0xE1) = sizeof(data)
         data[i] = Wire.read();
         i++;
     }
@@ -153,7 +153,7 @@ void read_bme280()
         wdata.error |= ERROR_BME_READ;
         return;
     }
-    while(Wire.available()){
+    while(Wire.available() && (i < 8)){
         data[i] = Wire.read();
         i++;
     }
@@ -190,6 +190,7 @@ bool setup_bme280()
     uint8_t ctrl_hum_reg  = osrs_h;
 
     Wire.begin();
+    Wire.setTimeOut(100);
     delay(1000); // Wait a second after the initialization
 
     // Get Chip ID
