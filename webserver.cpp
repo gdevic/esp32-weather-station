@@ -71,23 +71,36 @@ void webserver_set_response()
     webtext_root += "\ntemp_c = " + String(wdata.temp_c);
     webtext_root += "\ntemp_f = " + String(wdata.temp_f);
     webtext_root += "\npressure = " + String(wdata.pressure);
-    webtext_root += "\nhumidity = " + String(wdata.humidity);   
+    webtext_root += "\nhumidity = " + String(wdata.humidity);
 
-    webtext_root += "\nwind_calib = " + String(wdata.wind_calib, 4); // More decimal places
-    webtext_root += "\nwind_peak = " + String(wdata.wind_peak);
-    webtext_root += "\nwind_rt = " + String(wdata.wind_rt);
-    webtext_root += "\nwind_avg = " + String(wdata.wind_avg);
-    webtext_root += "\nwind_dir_adc = " + String(wdata.wind_dir_adc);
-    webtext_root += "\nwind_dir_rt = " + String(wdata.wind_dir_rt);
-    webtext_root += "\nwind_dir_avg = " + String(wdata.wind_dir_avg);
+    webtext_root += "\nheat_index_c = " + String(wdata.heat_index_c);
+    webtext_root += "\nheat_index_f = " + String(wdata.heat_index_f);
+    webtext_root += "\nwind_chill_c = " + String(wdata.wind_chill_c);
+    webtext_root += "\nwind_chill_f = " + String(wdata.wind_chill_f);
 
-    webtext_root += "\nrain_calib = " + String(wdata.rain_calib, 4); // More decimal places
-    webtext_root += "\nrain_rate = " + String(wdata.rain_rate);
-    webtext_root += "\nrain_event = " + String(wdata.rain_event);
-    webtext_root += "\nrain_event_max = " + String(wdata.rain_event_max);
-    webtext_root += "\nrain_event_cnt = " + String(wdata.rain_event_cnt);
-    webtext_root += "\nrain_total = " + String(wdata.rain_total);
-    webtext_root += "\nrain_test = " + String(wdata.rain_test);
+    webtext_root += "\nhas_wind = " + String(wdata.has_wind);
+    if (wdata.has_wind)
+    {
+        webtext_root += "\nwind_calib = " + String(wdata.wind_calib, 4); // More decimal places
+        webtext_root += "\nwind_peak = " + String(wdata.wind_peak);
+        webtext_root += "\nwind_rt = " + String(wdata.wind_rt);
+        webtext_root += "\nwind_avg = " + String(wdata.wind_avg);
+        webtext_root += "\nwind_dir_adc = " + String(wdata.wind_dir_adc);
+        webtext_root += "\nwind_dir_rt = " + String(wdata.wind_dir_rt);
+        webtext_root += "\nwind_dir_avg = " + String(wdata.wind_dir_avg);
+    }
+
+    webtext_root += "\nhas_rain = " + String(wdata.has_rain);
+    if (wdata.has_rain)
+    {
+        webtext_root += "\nrain_calib = " + String(wdata.rain_calib, 4); // More decimal places
+        webtext_root += "\nrain_rate = " + String(wdata.rain_rate);
+        webtext_root += "\nrain_event = " + String(wdata.rain_event);
+        webtext_root += "\nrain_event_max = " + String(wdata.rain_event_max);
+        webtext_root += "\nrain_event_cnt = " + String(wdata.rain_event_cnt);
+        webtext_root += "\nrain_total = " + String(wdata.rain_total);
+        webtext_root += "\nrain_test = " + String(wdata.rain_test);
+    }
 
     webtext_root += String("</pre></body></html>\n");
 
@@ -107,17 +120,28 @@ void webserver_set_response()
         webtext_json += ", \"pressure\":" + String(wdata.pressure);
         webtext_json += ", \"humidity\":" + String(wdata.humidity);
 
-        webtext_json += ", \"wind_peak\":" + String(wdata.wind_peak);
-        webtext_json += ", \"wind_rt\":" + String(wdata.wind_rt);
-        webtext_json += ", \"wind_avg\":" + String(wdata.wind_avg);
-        webtext_json += ", \"wind_dir_rt\":" + String(wdata.wind_dir_rt);
-        webtext_json += ", \"wind_dir_avg\":" + String(wdata.wind_dir_avg);
+        webtext_json += ", \"heat_index_c\":" + String(wdata.heat_index_c);
+        webtext_json += ", \"heat_index_f\":" + String(wdata.heat_index_f);
+        webtext_json += ", \"wind_chill_c\":" + String(wdata.wind_chill_c);
+        webtext_json += ", \"wind_chill_f\":" + String(wdata.wind_chill_f);
 
-        webtext_json += ", \"rain_calib\":" + String(wdata.rain_calib, 4); // More decimal places
-        webtext_json += ", \"rain_rate\":" + String(wdata.rain_rate);
-        webtext_json += ", \"rain_event\":" + String(wdata.rain_event);
-        webtext_json += ", \"rain_event_cnt\":" + String(wdata.rain_event_cnt);
-        webtext_json += ", \"rain_total\":" + String(wdata.rain_total);
+        if (wdata.has_wind)
+        {
+            webtext_json += ", \"wind_peak\":" + String(wdata.wind_peak);
+            webtext_json += ", \"wind_rt\":" + String(wdata.wind_rt);
+            webtext_json += ", \"wind_avg\":" + String(wdata.wind_avg);
+            webtext_json += ", \"wind_dir_rt\":" + String(wdata.wind_dir_rt);
+            webtext_json += ", \"wind_dir_avg\":" + String(wdata.wind_dir_avg);
+        }
+
+        if (wdata.has_rain)
+        {
+            webtext_json += ", \"rain_calib\":" + String(wdata.rain_calib, 4); // More decimal places
+            webtext_json += ", \"rain_rate\":" + String(wdata.rain_rate);
+            webtext_json += ", \"rain_event\":" + String(wdata.rain_event);
+            webtext_json += ", \"rain_event_cnt\":" + String(wdata.rain_event_cnt);
+            webtext_json += ", \"rain_total\":" + String(wdata.rain_total);
+        }
     }
     webtext_json += " }";
 
@@ -204,7 +228,9 @@ void handleSet(AsyncWebServerRequest *request)
         bool ok = false;
         ok |= get_parse_value(request, "id", wdata.id);
         ok |= get_parse_value(request, "tag", wdata.tag);
+        ok |= get_parse_value(request, "has_wind", wdata.has_wind);
         ok |= get_parse_value(request, "wind_calib", wdata.wind_calib);
+        ok |= get_parse_value(request, "has_rain", wdata.has_rain);
         ok |= get_parse_value(request, "rain_calib", wdata.rain_calib);
         ok |= get_parse_value(request, "rain_event", wdata.rain_event);
         ok |= get_parse_value(request, "rain_event_max", wdata.rain_event_max);

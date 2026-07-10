@@ -51,6 +51,14 @@ struct WeatherData
     float pressure;     // Current pressure in "hPa"
     float humidity;     // Current relative humidity in "%"
 
+    // "Feels like" temperatures derived from temp/humidity/wind. Each equals the actual temperature outside its
+    // formula's meteorologically valid range (heat index below ~80F, wind chill above ~50F or wind <= 3 mph)
+    float heat_index_c; // Heat index (humidity-adjusted apparent temperature) in "C"
+    float heat_index_f; // Heat index (humidity-adjusted apparent temperature) in "F"
+    float wind_chill_c; // Wind chill (wind-adjusted apparent temperature) in "C"
+    float wind_chill_f; // Wind chill (wind-adjusted apparent temperature) in "F"
+
+    uint32_t has_wind;  // [NV] True if this station has wind sensor hardware attached; false suppresses wind json fields
     float wind_calib;   // [NV] Wind calibration factor (ticks to mph)
     float wind_peak;    // Wind peak maximum value over a 2-min sliding window
     float wind_rt;      // Wind realtime (5-sec averages)
@@ -59,6 +67,7 @@ struct WeatherData
     int wind_dir_rt;    // Wind instantaneous, real time direction measured once every 5 sec
     int wind_dir_avg;   // Wind direction [0,360) averaged over a 2-min sliding window
 
+    uint32_t has_rain;        // [NV] True if this station has rain sensor hardware attached; false suppresses rain json fields
     // The station does not do anything with "rain_calib"; clients should use it as a single calbration reference
     // when converting from the tip counters to inches of rain
     float rain_calib;        // [NV] Rain calibration factor (ticks to in)

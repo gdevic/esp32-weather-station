@@ -37,6 +37,35 @@ static const float tbl_cos[16] = {
 
 static Preferences pref;
 
+// NWS Rothfusz regression, valid roughly above 80F; below that the humidity effect is negligible so the actual
+// temperature is reported unchanged. https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+static float calc_heat_index_f(float temp_f, float humidity)
+{
+    if (temp_f < 80.0)
+        return temp_f;
+
+    float T = temp_f, RH = humidity;
+    float hi = -42.379 + 2.04901523*T + 10.14333127*RH - 0.22475541*T*RH - 0.00683783*T*T
+             - 0.05481717*RH*RH + 0.00122874*T*T*RH + 0.00085282*T*RH*RH - 0.00000199*T*T*RH*RH;
+
+    if (RH < 13.0 && T <= 112.0)
+        hi -= ((13.0 - RH) / 4.0) * sqrt((17.0 - fabs(T - 95.0)) / 17.0);
+    else if (RH > 85.0 && T <= 87.0)
+        hi += ((RH - 85.0) / 10.0) * ((87.0 - T) / 5.0);
+
+    return hi;
+}
+
+// NWS wind chill formula, valid only at or below 50F with wind above 3 mph; outside that range wind has a
+// negligible cooling effect so the actual temperature is reported unchanged.
+static float calc_wind_chill_f(float temp_f, float wind_mph)
+{
+    if (temp_f > 50.0 || wind_mph <= 3.0)
+        return temp_f;
+
+    return 35.74 + 0.6215*temp_f - 35.75*pow(wind_mph, 0.16) + 0.4275*temp_f*pow(wind_mph, 0.16);
+}
+
 // Set a preference string value pairs, we are using int, float and string variants
 void pref_set(const char* name, uint32_t value)
 {
@@ -134,6 +163,12 @@ static void vTask_read_sensors(void *p)
                 sum += rt_avg[i];
             wdata.wind_avg = sum / RT_AVG_MAX;
 
+            // Derive "feels like" temperatures from the readings collected above
+            wdata.heat_index_f = calc_heat_index_f(wdata.temp_f, wdata.humidity);
+            wdata.heat_index_c = (wdata.heat_index_f - 32.0) / 1.8;
+            wdata.wind_chill_f = calc_wind_chill_f(wdata.temp_f, wdata.wind_avg);
+            wdata.wind_chill_c = (wdata.wind_chill_f - 32.0) / 1.8;
+
             // Get and store wind vane direction
             wdata.wind_dir_adc = read_wind_dir_adc();
             wdata.wind_dir_rt = wind_calc_dir(wdata.wind_dir_adc);
@@ -203,7 +238,11 @@ static void vTask_read_sensors(void *p)
             Serial.print(wdata.pressure);
             Serial.print(" hPa HUM: ");
             Serial.print(wdata.humidity);
-            Serial.print(" % PEAK: ");
+            Serial.print(" % HI: ");
+            Serial.print(wdata.heat_index_f);
+            Serial.print(" F WC: ");
+            Serial.print(wdata.wind_chill_f);
+            Serial.print(" F PEAK: ");
             Serial.print(wdata.wind_peak);
             Serial.print(" mph RT: ");
             Serial.print(wdata.wind_rt);
@@ -244,7 +283,9 @@ void setup()
     pref.begin("wd", true);
     wdata.id = pref.getString("id", "");
     wdata.tag = pref.getString("tag", "");
+    wdata.has_wind = pref.getUInt("has_wind", 1);
     wdata.wind_calib = pref.getFloat("wind_calib", WIND_FACTOR_MPH);
+    wdata.has_rain = pref.getUInt("has_rain", 1);
     wdata.rain_calib = pref.getFloat("rain_calib", RAIN_FACTOR_IN);
     wdata.rain_event = pref.getUInt("rain_event", 0);
     wdata.rain_event_max = pref.getUInt("rain_event_max", 24);
