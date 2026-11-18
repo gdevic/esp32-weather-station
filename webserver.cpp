@@ -142,6 +142,8 @@ void webserver_set_response()
             webtext_json += ", \"rain_event\":" + String(wdata.rain_event);
             webtext_json += ", \"rain_event_cnt\":" + String(wdata.rain_event_cnt);
             webtext_json += ", \"rain_total\":" + String(wdata.rain_total);
+            webtext_json += ", \"rain_test\":" + String(wdata.rain_test);       // Reed switch closures since boot
+            webtext_json += ", \"rain_virtual\":" + String(wdata.rain_virtual); // Virtual tips since boot
         }
     }
     webtext_json += " }";

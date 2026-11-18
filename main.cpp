@@ -213,29 +213,28 @@ static void vTask_read_sensors(void *p)
             uint32_t virtual_count = rain_virt.get_and_clear_count();
             wdata.rain_virtual += virtual_count;
             rain_count += virtual_count;
-            if (can_rain || virtual_count)
+
+            // Store the new rain tip amount into a circular buffer; a slot holds at most 255 tips. The window advances
+            // every cycle, also when tips are ignored, so the rate always falls back to zero 10 minutes after the last tip.
+            rt_rain[rt_rain_next] = uint8_t((rain_count > 255) ? 255 : rain_count);
+            rt_rain_next = (rt_rain_next + 1) % RT_RAIN_MAX;
+
+            // Calculate the sum of all new rain tips for the past 10-min and publish it as a rain rate
+            uint32_t rain_sum = uint32_t(rt_rain[0]);
+            for (int i = 1; i < RT_RAIN_MAX; i++)
+                rain_sum += uint32_t(rt_rain[i]);
+            wdata.rain_rate = rain_sum * RAIN_RATE_MUL; // Publish it as "per hour" value
+
+            // Add the new rain volume to the current rain_event and the overall rain total and back the result up in the NVM
+            // Do it only if there is new rain to add so that we don't write to NVM unnecessarily
+            if (rain_count)
             {
-                // Store the new rain tip amount into a circular buffer; a slot holds at most 255 tips
-                rt_rain[rt_rain_next] = uint8_t((rain_count > 255) ? 255 : rain_count);
-                rt_rain_next = (rt_rain_next + 1) % RT_RAIN_MAX;
-
-                // Calculate the sum of all new rain tips for the past 10-min and publish it as a rain rate
-                uint32_t rain_sum = uint32_t(rt_rain[0]);
-                for (int i = 1; i < RT_RAIN_MAX; i++)
-                    rain_sum += uint32_t(rt_rain[i]);
-                wdata.rain_rate = rain_sum * RAIN_RATE_MUL; // Publish it as "per hour" value
-
-                // Add the new rain volume to the current rain_event and the overall rain total and back the result up in the NVM
-                // Do it only if there is new rain to add so that we don't write to NVM unnecessarily
-                if (rain_count)
-                {
-                    wdata.rain_event += rain_count;
-                    wdata.rain_total += rain_count;
-                    wdata.rain_event_cnt = 0; // Restart 'the number of hours since the last rain' counter
-                    pref_set("rain_event", wdata.rain_event);
-                    pref_set("rain_total", wdata.rain_total);
-                    pref_set("rain_event_cnt", wdata.rain_event_cnt);
-                }
+                wdata.rain_event += rain_count;
+                wdata.rain_total += rain_count;
+                wdata.rain_event_cnt = 0; // Restart 'the number of hours since the last rain' counter
+                pref_set("rain_event", wdata.rain_event);
+                pref_set("rain_total", wdata.rain_total);
+                pref_set("rain_event_cnt", wdata.rain_event_cnt);
             }
 #ifdef TEST
             Serial.print(wdata.seconds);
