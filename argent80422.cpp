@@ -9,6 +9,7 @@
 
 Gauge anem = {};
 Gauge rain = {};
+Gauge rain_virt = {}; // Virtual rain tips set over HTTP; drained together with the rain gauge tips
 
 Gauge::Gauge()
 {

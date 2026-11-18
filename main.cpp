@@ -204,10 +204,19 @@ static void vTask_read_sensors(void *p)
             wdata.rain_test += rain_count; // Always increment the test counter
             // If the relative humidity was less than a cutoff value, it is a false rain positive and will be ignored
             // However, if the BME humidity sensor could not be read, ignore that check
-            if ((wdata.error & ERROR_BME_READ) || (uint32_t(wdata.humidity) >= CAN_RAIN_HUMIDITY_MIN))
+            bool can_rain = (wdata.error & ERROR_BME_READ) || (uint32_t(wdata.humidity) >= CAN_RAIN_HUMIDITY_MIN);
+            if (!can_rain)
+                rain_count = 0;
+            // Virtual tips (/set?rain_tips=N) stand in for the rain gauge and are counted exactly like its tips. They
+            // are not part of rain_test, which stays a reed switch check, and the humidity check above does not apply
+            // to them since it only filters mechanical false tips.
+            uint32_t virtual_count = rain_virt.get_and_clear_count();
+            wdata.rain_virtual += virtual_count;
+            rain_count += virtual_count;
+            if (can_rain || virtual_count)
             {
-                // Store the new rain tip amount into a circular buffer
-                rt_rain[rt_rain_next] = uint8_t(rain_count);
+                // Store the new rain tip amount into a circular buffer; a slot holds at most 255 tips
+                rt_rain[rt_rain_next] = uint8_t((rain_count > 255) ? 255 : rain_count);
                 rt_rain_next = (rt_rain_next + 1) % RT_RAIN_MAX;
 
                 // Calculate the sum of all new rain tips for the past 10-min and publish it as a rain rate

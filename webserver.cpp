@@ -100,6 +100,7 @@ void webserver_set_response()
         webtext_root += "\nrain_event_cnt = " + String(wdata.rain_event_cnt);
         webtext_root += "\nrain_total = " + String(wdata.rain_total);
         webtext_root += "\nrain_test = " + String(wdata.rain_test);
+        webtext_root += "\nrain_virtual = " + String(wdata.rain_virtual);
     }
 
     webtext_root += String("</pre></body></html>\n");
@@ -238,6 +239,24 @@ void handleSet(AsyncWebServerRequest *request)
         ok |= get_parse_value(request, "rain_total", wdata.rain_total);
         ok |= get_parse_value(request, "error", wdata.error);
         ok |= get_parse_value(request, "temp_c_calib", wdata.temp_c_calib);
+
+        // Virtual rain tips, run-time only (not NV-backed): N tips are counted at the next 5-sec sensor cycle as if
+        // the rain gauge had tipped N times. Lets an external source stand in for a missing rain gauge.
+        if (!ok)
+        {
+            String value = request->arg("rain_tips");
+            if (value.length())
+            {
+                char *p_next;
+                uint32_t n = strtoul(value.c_str(), &p_next, 10);
+                if ((p_next != value.c_str()) && (*p_next == 0) && (n <= RAIN_TIPS_MAX))
+                {
+                    rain_virt.add(n);
+                    request->send(200, "text/html", "OK " + String(n));
+                    ok = true;
+                }
+            }
+        }
 
         // Post-parse validation: restore previous value if the new one is out of valid range
 

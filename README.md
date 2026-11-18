@@ -16,3 +16,8 @@ Set your WiFi credentials in "wifi_credentials.h"
 
 OTA update:
 Sketch->Export compiled binary->select "esp32-weather-station.ino.bin"
+
+Builds from 1.22 on use the ESP32 Arduino core 3.0.7 (ESP-IDF 5.1); the images in `build_archive/` were built with it.
+
+Virtual rain tips:
+`http://<IP>/set?rain_tips=N` (N up to 255) makes the station count N rain gauge tips at its next 5-second cycle, exactly as if the gauge had tipped: `rain_rate`, `rain_event`, `rain_event_cnt` and `rain_total` follow as usual. The value is not stored in NVM. The status page `/` shows the tips received since boot as `rain_virtual`; `rain_test` keeps counting only real reed switch closures. A server can use this to stand in for a missing or broken rain gauge.

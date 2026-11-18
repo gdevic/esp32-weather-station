@@ -2,7 +2,7 @@
 #include <Wire.h>
 
 // The version string shown in stats. Nothing depends on it and it is used only to confirm newly flashed firmware.
-#define FIRMWARE_VERSION "1.22"
+#define FIRMWARE_VERSION "1.23"
 
 // To update firmware OTA, point your web server to <IP>/upload device webpage
 // Static IP address depends on the GPIO32/39/36 strapped to GND or Vcc in this way:
@@ -39,6 +39,9 @@
 
 #define WIND_FACTOR_MPH 1.492 // Relay tick to mph
 #define RAIN_FACTOR_IN  0.021 // Relay tick to inches of rain (initial best guess calibration value, rain_calib)
+
+// Largest number of virtual rain tips accepted by one /set?rain_tips=N request, the capacity of one 5-sec rain slot
+#define RAIN_TIPS_MAX  255
 
 struct WeatherData
 {
@@ -77,6 +80,7 @@ struct WeatherData
     uint32_t rain_event_cnt; // [NV] The number of hours since the last rain, to reset the rain_event
     uint32_t rain_rate;      // Rain rate, sum of individual new rain tips over a 10-min sliding window times "per hour"
     uint32_t rain_test;      // Rain test counter, unconditionally increments
+    uint32_t rain_virtual;   // Virtual rain tips received with /set?rain_tips=N since boot, counted like gauge tips
 
     // Misc logging and debug fields
     uint32_t seconds;     // Uptime seconds counter (shown as "uptime" in web reports)
@@ -112,6 +116,13 @@ public:
         portEXIT_CRITICAL(&lock);
         return n;
     }
+    // Adds counts from outside the ISR (virtual rain tips set over HTTP)
+    void add(uint32_t n)
+    {
+        portENTER_CRITICAL(&lock);
+        count = count + n;
+        portEXIT_CRITICAL(&lock);
+    }
 
 private:
     uint32_t last_time; // Used to debounce the reed switch
@@ -122,6 +133,7 @@ private:
 
 extern Gauge anem;
 extern Gauge rain;
+extern Gauge rain_virt;
 
 // From main.cpp
 void pref_set(const char* name, uint32_t value);
